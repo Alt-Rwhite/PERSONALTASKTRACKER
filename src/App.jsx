@@ -33,14 +33,14 @@ const GB = { background: "transparent", color: "#aaa", border: "1px solid #333",
 export default function App() {
   const [session, setSession] = useState(undefined);
   const [tasks, setTasks]     = useState([]);
-  const [latestNotes, setLatestNotes] = useState({}); // { task_id: {body, created_at} }
+  const [latestNotes, setLatestNotes] = useState({});
   const [view, setView]       = useState("list");
   const [active, setActive]   = useState(null);
   const [notes, setNotes]     = useState([]);
   const [dbLoading, setDbLoading] = useState(false);
   const [newDesc, setNewDesc] = useState("");
   const [adding, setAdding]   = useState(false);
-  const [filter, setFilter]   = useState("all");
+  const [filter, setFilter]   = useState("active");
   const [sort, setSort]       = useState("desc");
   const [search, setSearch]   = useState("");
   const [noteInput, setNoteInput] = useState("");
@@ -66,7 +66,6 @@ export default function App() {
     setDbLoading(true);
     const { data: taskData } = await supabase.from("tasks").select("*").eq("user_id", session.user.id);
     setTasks(taskData || []);
-    // Load all notes for this user and keep only the latest per task
     const { data: noteData } = await supabase
       .from("task_notes")
       .select("task_id,body,created_at")
@@ -134,8 +133,9 @@ export default function App() {
   };
 
   const statusCounts = Object.keys(SC).reduce((a, s) => ({ ...a, [s]: tasks.filter(t => t.status === s).length }), {});
+  const activeCount = tasks.filter(t => t.status !== "closed").length;
   const list = tasks
-    .filter(t => filter === "all" || t.status === filter)
+    .filter(t => filter === "active" ? t.status !== "closed" : t.status === filter)
     .filter(t => {
       if (!search.trim()) return true;
       const q = search.toLowerCase();
@@ -221,7 +221,7 @@ export default function App() {
           </div>
 
           <div style={{ display: "flex", borderBottom: "1px solid #1a1a1a", overflowX: "auto" }}>
-            {[["all", "All", tasks.length], ...Object.entries(SC).map(([k, v]) => [k, v.label, statusCounts[k]])].map(([k, l, c]) => (
+            {[["active", "Active", activeCount], ...Object.entries(SC).map(([k, v]) => [k, v.label, statusCounts[k]])].map(([k, l, c]) => (
               <button key={k} onClick={() => setFilter(k)} style={{
                 background: filter === k ? "#1a1a1a" : "transparent",
                 color: filter === k ? "#fff" : "#888",
