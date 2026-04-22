@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// ─── CONFIGURATION ────────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://djrdgxrhwstbltbkmjpv.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqcmRneHJod3N0Ymx0YmttanB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyOTc5OTcsImV4cCI6MjA5MDg3Mzk5N30.Kx5Wc2MfMXto-rn1Vq5AgsdBzGVUItFjFirkdpNNgVU";
-const APP_URL = "https://alt-rwhite.github.io/PERSONALTASKTRACKER/";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -46,7 +44,7 @@ export default function App() {
   const [search, setSearch]   = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [email, setEmail]     = useState("");
-  const [sent, setSent]       = useState(false);
+  const [password, setPassword] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
   const [authErr, setAuthErr] = useState("");
   const taRef = useRef(null);
@@ -70,16 +68,15 @@ export default function App() {
     setDbLoading(false);
   };
 
-  const doMagicLink = async () => {
-    if (!email.trim()) return;
+  const doSignIn = async () => {
+    if (!email.trim() || !password) return;
     setAuthBusy(true); setAuthErr("");
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: { emailRedirectTo: APP_URL },
+      password,
     });
     setAuthBusy(false);
     if (error) setAuthErr(error.message);
-    else setSent(true);
   };
 
   const doSignOut = async () => {
@@ -138,31 +135,23 @@ export default function App() {
       <div style={{ maxWidth: 400, margin: "0 auto", padding: "80px 24px" }}>
         <Logo />
         <div style={{ marginTop: 48 }}>
-          {sent ? (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 32, marginBottom: 16, opacity: 0.6 }}>✉</div>
-              <p style={{ fontSize: 13, color: "#888", lineHeight: 1.8 }}>
-                Magic link sent to<br /><span style={{ color: "#ddd" }}>{email}</span>
-              </p>
-              <p style={{ fontSize: 11, color: "#333", marginTop: 12, lineHeight: 1.7 }}>Check your inbox and click the link immediately.</p>
-              <button onClick={() => { setSent(false); setEmail(""); }} style={{ ...GB, marginTop: 24 }}>USE DIFFERENT EMAIL</button>
-            </div>
-          ) : (
-            <>
-              <div style={{ fontSize: 10, color: "#444", letterSpacing: 2, marginBottom: 16 }}>SIGN IN — NO PASSWORD NEEDED</div>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && doMagicLink()}
-                placeholder="your@email.com"
-                style={{ width: "100%", background: "#0a0a0a", border: "1px solid #1a1a1a", color: "#eee", fontSize: 13, padding: "11px 14px", fontFamily: "'DM Mono',monospace", marginBottom: 10 }}
-              />
-              {authErr && <div style={{ fontSize: 11, color: "#c44", marginBottom: 10 }}>{authErr}</div>}
-              <button onClick={doMagicLink} disabled={authBusy} style={{ ...PB, width: "100%", padding: "10px 0" }}>
-                {authBusy ? "SENDING..." : "SEND MAGIC LINK →"}
-              </button>
-              <p style={{ fontSize: 11, color: "#2a2a2a", marginTop: 16, lineHeight: 1.7 }}>We'll email you a one-click sign-in link. No password ever.</p>
-            </>
-          )}
+          <div style={{ fontSize: 10, color: "#444", letterSpacing: 2, marginBottom: 20 }}>SIGN IN</div>
+          <input
+            type="email" value={email} onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && doSignIn()}
+            placeholder="your@email.com"
+            style={{ width: "100%", background: "#0a0a0a", border: "1px solid #1a1a1a", color: "#eee", fontSize: 13, padding: "11px 14px", fontFamily: "'DM Mono',monospace", marginBottom: 10 }}
+          />
+          <input
+            type="password" value={password} onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && doSignIn()}
+            placeholder="password"
+            style={{ width: "100%", background: "#0a0a0a", border: "1px solid #1a1a1a", color: "#eee", fontSize: 13, padding: "11px 14px", fontFamily: "'DM Mono',monospace", marginBottom: 10 }}
+          />
+          {authErr && <div style={{ fontSize: 11, color: "#c44", marginBottom: 10 }}>{authErr}</div>}
+          <button onClick={doSignIn} disabled={authBusy} style={{ ...PB, width: "100%", padding: "10px 0" }}>
+            {authBusy ? "SIGNING IN..." : "SIGN IN →"}
+          </button>
         </div>
       </div>
     </Shell>
