@@ -33,6 +33,7 @@ const GB = { background: "transparent", color: "#aaa", border: "1px solid #333",
 export default function App() {
   const [session, setSession] = useState(undefined);
   const [tasks, setTasks]     = useState([]);
+  const [latestNotes, setLatestNotes] = useState({}); // { task_id: {body, created_at} }
   const [view, setView]       = useState("list");
   const [active, setActive]   = useState(null);
   const [notes, setNotes]     = useState([]);
@@ -59,12 +60,23 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => { if (session) loadTasks(); }, [session]);
+  useEffect(() => { if (session) loadAll(); }, [session]);
 
-  const loadTasks = async () => {
+  const loadAll = async () => {
     setDbLoading(true);
-    const { data } = await supabase.from("tasks").select("*").eq("user_id", session.user.id);
-    setTasks(data || []);
+    const { data: taskData } = await supabase.from("tasks").select("*").eq("user_id", session.user.id);
+    setTasks(taskData || []);
+    // Load all notes for this user and keep only the latest per task
+    const { data: noteData } = await supabase
+      .from("task_notes")
+      .select("task_id,body,created_at")
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false });
+    const latest = {};
+    (noteData || []).forEach(n => {
+      if (!latest[n.task_id]) latest[n.task_id] = n;
+    });
+    setLatestNotes(latest);
     setDbLoading(false);
   };
 
@@ -81,7 +93,7 @@ export default function App() {
 
   const doSignOut = async () => {
     await supabase.auth.signOut();
-    setSession(null); setTasks([]); setView("list");
+    setSession(null); setTasks([]); setLatestNotes({}); setView("list");
   };
 
   const doAddTask = async () => {
@@ -114,14 +126,23 @@ export default function App() {
       user_id: session.user.id,
       body: noteInput.trim(),
     }).select().single();
-    if (data) setNotes(p => [...p, data]);
+    if (data) {
+      setNotes(p => [...p, data]);
+      setLatestNotes(p => ({ ...p, [active.id]: { task_id: active.id, body: data.body, created_at: data.created_at } }));
+    }
     setNoteInput("");
   };
 
   const statusCounts = Object.keys(SC).reduce((a, s) => ({ ...a, [s]: tasks.filter(t => t.status === s).length }), {});
   const list = tasks
     .filter(t => filter === "all" || t.status === filter)
-    .filter(t => !search.trim() || t.description.toLowerCase().includes(search.toLowerCase()))
+    .filter(t => {
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      if (t.description.toLowerCase().includes(q)) return true;
+      const note = latestNotes[t.id];
+      return note && note.body.toLowerCase().includes(q);
+    })
     .sort((a, b) => sort === "desc"
       ? new Date(b.created_at) - new Date(a.created_at)
       : new Date(a.created_at) - new Date(b.created_at));
@@ -237,6 +258,7 @@ export default function App() {
                 ? <Center><span style={{ fontSize: 11, color: "#555", letterSpacing: 2 }}>{search ? `NO RESULTS FOR "${search.toUpperCase()}"` : "NO TASKS YET"}</span></Center>
                 : list.map(task => {
                   const s = SC[task.status];
+                  const latest = latestNotes[task.id];
                   return (
                     <div key={task.id} onClick={() => doOpenTask(task)}
                       style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "16px 18px", borderBottom: "1px solid #1a1a1a", cursor: "pointer", transition: "background 0.1s" }}
@@ -247,9 +269,33 @@ export default function App() {
                         <div style={{ fontSize: 14, color: task.status === "closed" ? "#666" : "#fff", textDecoration: task.status === "closed" ? "line-through" : "none", lineHeight: 1.5, marginBottom: 5, fontWeight: 500, wordBreak: "break-word" }}>
                           <Hl text={task.description} q={search} />
                         </div>
-                        <div style={{ fontSize: 11, color: "#666", letterSpacing: 1, fontWeight: 500 }}>{fmtShort(task.created_at)}</div>
+                        <div style={{ fontSize: 11, color: "#666", letterSpacing: 1, fontWeight: 500, marginBottom: latest ? 8 : 0 }}>{fmtShort(task.created_at)}</div>
+                        {latest && (
+                          <div
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                              maxHeight: 60,
+                              overflowY: "auto",
+                              background: "#0c0c0c",
+                              border: "1px solid #1a1a1a",
+                              borderLeft: "2px solid #333",
+                              padding: "6px 10px",
+                              fontSize: 12,
+                              color: "#aaa",
+                              lineHeight: 1.5,
+                              fontWeight: 500,
+                              wordBreak: "break-word",
+                              cursor: "text",
+                            }}
+                          >
+                            <div style={{ fontSize: 9, color: "#555", letterSpacing: 1, marginBottom: 3, fontWeight: 600 }}>
+                              LAST NOTE · {fmtShort(latest.created_at)}
+                            </div>
+                            <Hl text={latest.body} q={search} />
+                          </div>
+                        )}
                       </div>
-                      <span style={{ fontSize: 10, letterSpacing: 1.5, padding: "4px 10px", background: s.bg, color: s.color, border: `1px solid ${s.border}`, flexShrink: 0, alignSelf: "center", fontWeight: 600 }}>
+                      <span style={{ fontSize: 10, letterSpacing: 1.5, padding: "4px 10px", background: s.bg, color: s.color, border: `1px solid ${s.border}`, flexShrink: 0, alignSelf: "flex-start", fontWeight: 600 }}>
                         {s.label.toUpperCase()}
                       </span>
                     </div>
@@ -266,12 +312,25 @@ export default function App() {
             <div style={{ fontSize: 11, color: "#777", letterSpacing: 2, marginBottom: 10, fontWeight: 500 }}>ADDED {fmt(curTask.created_at)}</div>
             <div style={{ fontSize: 16, color: "#fff", lineHeight: 1.6, marginBottom: 22, fontWeight: 500, wordBreak: "break-word" }}>{curTask.description}</div>
             <div style={{ fontSize: 11, color: "#888", letterSpacing: 2, marginBottom: 10, fontWeight: 500 }}>STATUS</div>
-            <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
               {Object.entries(SC).map(([key, cfg]) => {
                 const on = curTask.status === key;
                 return (
                   <button key={key} onClick={() => doUpdateStatus(curTask.id, key)}
-                    style={{ background: on ? cfg.bg : "transparent", color: on ? cfg.color : "#888", border: `1px solid ${on ? cfg.border : "#2a2a2a"}`, padding: "6px 14px", fontSize: 10, letterSpacing: 1.5, fontFamily: "'DM Mono',monospace", cursor: "pointer", transition: "all 0.1s", fontWeight: 600 }}>
+                    style={{
+                      background: on ? cfg.bg : "transparent",
+                      color: on ? cfg.color : "#888",
+                      border: `1px solid ${on ? cfg.border : "#2a2a2a"}`,
+                      padding: "10px 14px",
+                      fontSize: 11,
+                      letterSpacing: 1.5,
+                      fontFamily: "'DM Mono',monospace",
+                      cursor: "pointer",
+                      transition: "all 0.1s",
+                      fontWeight: 600,
+                      textAlign: "center",
+                      width: "100%",
+                    }}>
                     {cfg.label.toUpperCase()}
                   </button>
                 );
