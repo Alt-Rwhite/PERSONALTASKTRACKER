@@ -7,10 +7,10 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const SC = {
-  open:       { label: "Open",        dot: "#555",    bg: "#1a1a1a", color: "#fff", border: "#444" },
+  open:       { label: "Open",        dot: "#888",    bg: "#1a1a1a", color: "#fff", border: "#555" },
   inprogress: { label: "In Progress", dot: "#ffffff", bg: "#ffffff", color: "#000", border: "#fff" },
-  onhold:     { label: "On Hold",     dot: "#555",    bg: "#1e1e1e", color: "#888", border: "#444" },
-  closed:     { label: "Closed",      dot: "#1e1e1e", bg: "#0d0d0d", color: "#333", border: "#1a1a1a" },
+  onhold:     { label: "On Hold",     dot: "#888",    bg: "#222",    color: "#ccc", border: "#555" },
+  closed:     { label: "Closed",      dot: "#444",    bg: "#141414", color: "#666", border: "#333" },
 };
 
 const fmt = (iso) => {
@@ -24,11 +24,11 @@ function Hl({ text, q }) {
   if (!q) return <>{text}</>;
   const i = text.toLowerCase().indexOf(q.toLowerCase());
   if (i === -1) return <>{text}</>;
-  return <>{text.slice(0, i)}<mark style={{ background: "#fff", color: "#000", padding: "0 1px" }}>{text.slice(i, i + q.length)}</mark>{text.slice(i + q.length)}</>;
+  return <>{text.slice(0, i)}<mark style={{ background: "#fff", color: "#000", padding: "0 2px" }}>{text.slice(i, i + q.length)}</mark>{text.slice(i + q.length)}</>;
 }
 
-const PB = { background: "#fff", color: "#000", border: "none", padding: "7px 16px", fontSize: 10, letterSpacing: 2, fontFamily: "'DM Mono',monospace", cursor: "pointer" };
-const GB = { background: "transparent", color: "#555", border: "1px solid #1e1e1e", padding: "7px 16px", fontSize: 10, letterSpacing: 2, fontFamily: "'DM Mono',monospace", cursor: "pointer" };
+const PB = { background: "#fff", color: "#000", border: "none", padding: "9px 18px", fontSize: 11, letterSpacing: 2, fontFamily: "'DM Mono',monospace", fontWeight: 600, cursor: "pointer" };
+const GB = { background: "transparent", color: "#aaa", border: "1px solid #333", padding: "9px 18px", fontSize: 11, letterSpacing: 2, fontFamily: "'DM Mono',monospace", fontWeight: 500, cursor: "pointer" };
 
 export default function App() {
   const [session, setSession] = useState(undefined);
@@ -127,29 +127,29 @@ export default function App() {
       : new Date(a.created_at) - new Date(b.created_at));
 
   if (session === undefined) return (
-    <Shell><Center><span style={{ fontSize: 11, color: "#222", letterSpacing: 4 }}>LOADING...</span></Center></Shell>
+    <Shell><Center><span style={{ fontSize: 12, color: "#555", letterSpacing: 4 }}>LOADING...</span></Center></Shell>
   );
 
   if (!session) return (
     <Shell>
-      <div style={{ maxWidth: 400, margin: "0 auto", padding: "80px 24px" }}>
+      <div style={{ maxWidth: 400, margin: "0 auto", padding: "80px 24px", width: "100%" }}>
         <Logo />
         <div style={{ marginTop: 48 }}>
-          <div style={{ fontSize: 10, color: "#444", letterSpacing: 2, marginBottom: 20 }}>SIGN IN</div>
+          <div style={{ fontSize: 11, color: "#888", letterSpacing: 2, marginBottom: 20, fontWeight: 500 }}>SIGN IN</div>
           <input
             type="email" value={email} onChange={e => setEmail(e.target.value)}
             onKeyDown={e => e.key === "Enter" && doSignIn()}
             placeholder="your@email.com"
-            style={{ width: "100%", background: "#0a0a0a", border: "1px solid #1a1a1a", color: "#eee", fontSize: 13, padding: "11px 14px", fontFamily: "'DM Mono',monospace", marginBottom: 10 }}
+            style={{ width: "100%", background: "#111", border: "1px solid #2a2a2a", color: "#fff", fontSize: 14, padding: "13px 16px", fontFamily: "'DM Mono',monospace", marginBottom: 10, fontWeight: 500 }}
           />
           <input
             type="password" value={password} onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === "Enter" && doSignIn()}
             placeholder="password"
-            style={{ width: "100%", background: "#0a0a0a", border: "1px solid #1a1a1a", color: "#eee", fontSize: 13, padding: "11px 14px", fontFamily: "'DM Mono',monospace", marginBottom: 10 }}
+            style={{ width: "100%", background: "#111", border: "1px solid #2a2a2a", color: "#fff", fontSize: 14, padding: "13px 16px", fontFamily: "'DM Mono',monospace", marginBottom: 10, fontWeight: 500 }}
           />
-          {authErr && <div style={{ fontSize: 11, color: "#c44", marginBottom: 10 }}>{authErr}</div>}
-          <button onClick={doSignIn} disabled={authBusy} style={{ ...PB, width: "100%", padding: "10px 0" }}>
+          {authErr && <div style={{ fontSize: 12, color: "#ff6464", marginBottom: 10, fontWeight: 500 }}>{authErr}</div>}
+          <button onClick={doSignIn} disabled={authBusy} style={{ ...PB, width: "100%", padding: "12px 0", fontSize: 12 }}>
             {authBusy ? "SIGNING IN..." : "SIGN IN →"}
           </button>
         </div>
@@ -161,28 +161,23 @@ export default function App() {
 
   return (
     <Shell>
-      <div style={{ padding: "18px 22px 14px", borderBottom: "1px solid #141414", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+      <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid #222", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
           {view === "detail" && (
             <span onClick={() => { setView("list"); setActive(null); }}
-              style={{ fontSize: 11, color: "#444", cursor: "pointer", letterSpacing: 1, marginRight: 6 }}
-              onMouseEnter={e => e.target.style.color = "#aaa"}
-              onMouseLeave={e => e.target.style.color = "#444"}>
+              style={{ fontSize: 12, color: "#999", cursor: "pointer", letterSpacing: 1, marginRight: 4, fontWeight: 500 }}>
               ← back
             </span>
           )}
           <Logo inline />
-          {view === "list" && <span style={{ fontSize: 10, color: "#282828", letterSpacing: 2 }}>{tasks.length} TASKS</span>}
+          {view === "list" && <span style={{ fontSize: 11, color: "#666", letterSpacing: 2, fontWeight: 500 }}>{tasks.length} TASKS</span>}
         </div>
-        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {view === "list" && (
             <button onClick={() => { setAdding(true); setTimeout(() => taRef.current?.focus(), 40); }} style={PB}>+ NEW</button>
           )}
-          <span style={{ fontSize: 10, color: "#2e2e2e" }}>{session.user.email}</span>
           <span onClick={doSignOut}
-            style={{ fontSize: 10, color: "#333", cursor: "pointer", letterSpacing: 1 }}
-            onMouseEnter={e => e.target.style.color = "#888"}
-            onMouseLeave={e => e.target.style.color = "#333"}>
+            style={{ fontSize: 11, color: "#888", cursor: "pointer", letterSpacing: 1, fontWeight: 500 }}>
             sign out
           </span>
         </div>
@@ -190,44 +185,44 @@ export default function App() {
 
       {view === "list" && (
         <>
-          <div style={{ display: "flex", borderBottom: "1px solid #111" }}>
+          <div style={{ display: "flex", borderBottom: "1px solid #1a1a1a" }}>
             <div style={{ flex: 1, display: "flex", alignItems: "center", position: "relative" }}>
-              <span style={{ position: "absolute", left: 14, color: "#2e2e2e", fontSize: 14, pointerEvents: "none" }}>⌕</span>
+              <span style={{ position: "absolute", left: 14, color: "#666", fontSize: 16, pointerEvents: "none" }}>⌕</span>
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search tasks and notes..."
-                style={{ width: "100%", background: "transparent", border: "none", borderRight: "1px solid #111", color: "#bbb", fontSize: 12, padding: "10px 14px 10px 34px", fontFamily: "'DM Mono',monospace" }}
+                style={{ width: "100%", background: "transparent", border: "none", borderRight: "1px solid #1a1a1a", color: "#fff", fontSize: 13, padding: "12px 14px 12px 36px", fontFamily: "'DM Mono',monospace", fontWeight: 500 }}
               />
             </div>
             <button onClick={() => setSort(s => s === "desc" ? "asc" : "desc")}
-              style={{ ...GB, border: "none", color: "#383838", padding: "0 18px", whiteSpace: "nowrap", fontSize: 10 }}>
+              style={{ background: "transparent", border: "none", color: "#999", padding: "0 18px", whiteSpace: "nowrap", fontSize: 11, letterSpacing: 1, fontFamily: "'DM Mono',monospace", cursor: "pointer", fontWeight: 500 }}>
               DATE {sort === "desc" ? "↓" : "↑"}
             </button>
           </div>
 
-          <div style={{ display: "flex", borderBottom: "1px solid #0e0e0e", overflowX: "auto" }}>
+          <div style={{ display: "flex", borderBottom: "1px solid #1a1a1a", overflowX: "auto" }}>
             {[["all", "All", tasks.length], ...Object.entries(SC).map(([k, v]) => [k, v.label, statusCounts[k]])].map(([k, l, c]) => (
               <button key={k} onClick={() => setFilter(k)} style={{
-                background: filter === k ? "#111" : "transparent",
-                color: filter === k ? "#ddd" : "#2e2e2e",
-                border: "none", borderBottom: filter === k ? "2px solid #eee" : "2px solid transparent",
-                padding: "9px 16px", fontSize: 10, letterSpacing: 1.5,
-                fontFamily: "'DM Mono',monospace", cursor: "pointer", whiteSpace: "nowrap",
+                background: filter === k ? "#1a1a1a" : "transparent",
+                color: filter === k ? "#fff" : "#888",
+                border: "none", borderBottom: filter === k ? "2px solid #fff" : "2px solid transparent",
+                padding: "11px 16px", fontSize: 11, letterSpacing: 1.5,
+                fontFamily: "'DM Mono',monospace", cursor: "pointer", whiteSpace: "nowrap", fontWeight: 500,
               }}>
-                {String(l).toUpperCase()} <span style={{ opacity: 0.4 }}>({c})</span>
+                {String(l).toUpperCase()} <span style={{ opacity: 0.6 }}>({c})</span>
               </button>
             ))}
           </div>
 
           {adding && (
-            <div style={{ margin: "14px 22px", border: "1px solid #1a1a1a", background: "#0c0c0c", padding: 18 }}>
-              <div style={{ fontSize: 10, color: "#383838", letterSpacing: 2, marginBottom: 10 }}>NEW TASK</div>
+            <div style={{ margin: "14px 18px", border: "1px solid #2a2a2a", background: "#111", padding: 16 }}>
+              <div style={{ fontSize: 11, color: "#888", letterSpacing: 2, marginBottom: 10, fontWeight: 500 }}>NEW TASK</div>
               <textarea ref={taRef} value={newDesc} onChange={e => setNewDesc(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); doAddTask(); }
                   if (e.key === "Escape") { setAdding(false); setNewDesc(""); }
                 }}
                 placeholder="Describe the task… (Enter to save, Esc to cancel)"
-                style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid #1a1a1a", color: "#ddd", fontSize: 13, padding: "6px 0", resize: "none", minHeight: 54, lineHeight: 1.6, fontFamily: "'DM Mono',monospace" }} />
+                style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid #2a2a2a", color: "#fff", fontSize: 14, padding: "8px 0", resize: "none", minHeight: 56, lineHeight: 1.6, fontFamily: "'DM Mono',monospace", fontWeight: 500 }} />
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 <button onClick={doAddTask} style={PB}>SAVE</button>
                 <button onClick={() => { setAdding(false); setNewDesc(""); }} style={GB}>CANCEL</button>
@@ -237,24 +232,24 @@ export default function App() {
 
           <div style={{ flex: 1, overflowY: "auto" }}>
             {dbLoading
-              ? <Center><span style={{ fontSize: 10, color: "#1e1e1e", letterSpacing: 3 }}>LOADING...</span></Center>
+              ? <Center><span style={{ fontSize: 11, color: "#555", letterSpacing: 3 }}>LOADING...</span></Center>
               : list.length === 0
-                ? <Center><span style={{ fontSize: 10, color: "#1e1e1e", letterSpacing: 2 }}>{search ? `NO RESULTS FOR "${search.toUpperCase()}"` : "NO TASKS YET"}</span></Center>
+                ? <Center><span style={{ fontSize: 11, color: "#555", letterSpacing: 2 }}>{search ? `NO RESULTS FOR "${search.toUpperCase()}"` : "NO TASKS YET"}</span></Center>
                 : list.map(task => {
                   const s = SC[task.status];
                   return (
                     <div key={task.id} onClick={() => doOpenTask(task)}
-                      style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "15px 22px", borderBottom: "1px solid #0d0d0d", cursor: "pointer", transition: "background 0.1s, transform 0.1s" }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "#111"; e.currentTarget.style.transform = "translateX(3px)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.transform = "none"; }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot, border: "1px solid #1e1e1e", marginTop: 7, flexShrink: 0 }} />
+                      style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "16px 18px", borderBottom: "1px solid #1a1a1a", cursor: "pointer", transition: "background 0.1s" }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "#141414"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.dot, marginTop: 7, flexShrink: 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, color: task.status === "closed" ? "#2e2e2e" : "#ccc", textDecoration: task.status === "closed" ? "line-through" : "none", lineHeight: 1.55, marginBottom: 4 }}>
+                        <div style={{ fontSize: 14, color: task.status === "closed" ? "#666" : "#fff", textDecoration: task.status === "closed" ? "line-through" : "none", lineHeight: 1.5, marginBottom: 5, fontWeight: 500, wordBreak: "break-word" }}>
                           <Hl text={task.description} q={search} />
                         </div>
-                        <div style={{ fontSize: 10, color: "#222", letterSpacing: 1 }}>{fmtShort(task.created_at)}</div>
+                        <div style={{ fontSize: 11, color: "#666", letterSpacing: 1, fontWeight: 500 }}>{fmtShort(task.created_at)}</div>
                       </div>
-                      <span style={{ fontSize: 9, letterSpacing: 1.5, padding: "3px 10px", background: s.bg, color: s.color, border: `1px solid ${s.border}`, flexShrink: 0, alignSelf: "center" }}>
+                      <span style={{ fontSize: 10, letterSpacing: 1.5, padding: "4px 10px", background: s.bg, color: s.color, border: `1px solid ${s.border}`, flexShrink: 0, alignSelf: "center", fontWeight: 600 }}>
                         {s.label.toUpperCase()}
                       </span>
                     </div>
@@ -267,39 +262,39 @@ export default function App() {
 
       {view === "detail" && curTask && (
         <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: "22px 22px 18px", borderBottom: "1px solid #141414" }}>
-            <div style={{ fontSize: 10, color: "#282828", letterSpacing: 2, marginBottom: 8 }}>ADDED {fmt(curTask.created_at)}</div>
-            <div style={{ fontSize: 15, color: "#e0e0e0", lineHeight: 1.65, marginBottom: 22 }}>{curTask.description}</div>
-            <div style={{ fontSize: 10, color: "#383838", letterSpacing: 2, marginBottom: 10 }}>STATUS</div>
+          <div style={{ padding: "22px 18px 18px", borderBottom: "1px solid #222" }}>
+            <div style={{ fontSize: 11, color: "#777", letterSpacing: 2, marginBottom: 10, fontWeight: 500 }}>ADDED {fmt(curTask.created_at)}</div>
+            <div style={{ fontSize: 16, color: "#fff", lineHeight: 1.6, marginBottom: 22, fontWeight: 500, wordBreak: "break-word" }}>{curTask.description}</div>
+            <div style={{ fontSize: 11, color: "#888", letterSpacing: 2, marginBottom: 10, fontWeight: 500 }}>STATUS</div>
             <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
               {Object.entries(SC).map(([key, cfg]) => {
                 const on = curTask.status === key;
                 return (
                   <button key={key} onClick={() => doUpdateStatus(curTask.id, key)}
-                    style={{ background: on ? cfg.bg : "transparent", color: on ? cfg.color : "#2e2e2e", border: `1px solid ${on ? cfg.border : "#1a1a1a"}`, padding: "5px 14px", fontSize: 9, letterSpacing: 1.5, fontFamily: "'DM Mono',monospace", cursor: "pointer", transition: "all 0.1s" }}>
+                    style={{ background: on ? cfg.bg : "transparent", color: on ? cfg.color : "#888", border: `1px solid ${on ? cfg.border : "#2a2a2a"}`, padding: "6px 14px", fontSize: 10, letterSpacing: 1.5, fontFamily: "'DM Mono',monospace", cursor: "pointer", transition: "all 0.1s", fontWeight: 600 }}>
                     {cfg.label.toUpperCase()}
                   </button>
                 );
               })}
             </div>
           </div>
-          <div style={{ flex: 1, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ fontSize: 10, color: "#383838", letterSpacing: 2 }}>NOTES {notes.length > 0 ? `(${notes.length})` : ""}</div>
-            <div style={{ border: "1px solid #141414", background: "#0b0b0b" }}>
+          <div style={{ flex: 1, padding: "20px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ fontSize: 11, color: "#888", letterSpacing: 2, fontWeight: 500 }}>NOTES {notes.length > 0 ? `(${notes.length})` : ""}</div>
+            <div style={{ border: "1px solid #2a2a2a", background: "#111" }}>
               <textarea value={noteInput} onChange={e => setNoteInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); doAddNote(); } }}
                 placeholder="Add a note… (Enter to save, Shift+Enter for new line)"
-                style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid #141414", color: "#ccc", fontSize: 12, padding: "12px 14px", resize: "none", minHeight: 70, lineHeight: 1.7, fontFamily: "'DM Mono',monospace" }} />
-              <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px 12px" }}>
-                <button onClick={doAddNote} style={{ ...PB, fontSize: 9 }}>SAVE NOTE</button>
+                style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid #2a2a2a", color: "#fff", fontSize: 13, padding: "14px 14px", resize: "none", minHeight: 72, lineHeight: 1.7, fontFamily: "'DM Mono',monospace", fontWeight: 500 }} />
+              <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px 10px" }}>
+                <button onClick={doAddNote} style={{ ...PB, fontSize: 10, padding: "7px 14px" }}>SAVE NOTE</button>
               </div>
             </div>
             {notes.length === 0
-              ? <div style={{ fontSize: 11, color: "#1a1a1a", letterSpacing: 1 }}>NO NOTES YET</div>
+              ? <div style={{ fontSize: 12, color: "#555", letterSpacing: 1, fontWeight: 500 }}>NO NOTES YET</div>
               : [...notes].reverse().map(n => (
-                <div key={n.id} style={{ paddingBottom: 14, borderBottom: "1px solid #0e0e0e" }}>
-                  <div style={{ fontSize: 10, color: "#252525", letterSpacing: 1, marginBottom: 6 }}>{fmt(n.created_at)}</div>
-                  <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.65 }}>
+                <div key={n.id} style={{ paddingBottom: 14, borderBottom: "1px solid #1a1a1a" }}>
+                  <div style={{ fontSize: 11, color: "#666", letterSpacing: 1, marginBottom: 7, fontWeight: 500 }}>{fmt(n.created_at)}</div>
+                  <div style={{ fontSize: 14, color: "#ddd", lineHeight: 1.65, fontWeight: 500, wordBreak: "break-word" }}>
                     <Hl text={n.body} q={search} />
                   </div>
                 </div>
@@ -314,21 +309,30 @@ export default function App() {
 
 function Shell({ children }) {
   return (
-    <div style={{ minHeight: "100vh", background: "#080808", color: "#f0f0f0", fontFamily: "'DM Mono','Courier New',monospace", display: "flex", flexDirection: "column", maxWidth: 700, margin: "0 auto" }}>
+    <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:#080808;}::-webkit-scrollbar-thumb{background:#1e1e1e;}
+        html,body,#root{background:#000;min-height:100vh;width:100%;}
+        body{overflow-x:hidden;}
+        ::-webkit-scrollbar{width:4px;}
+        ::-webkit-scrollbar-track{background:#000;}
+        ::-webkit-scrollbar-thumb{background:#333;}
         textarea,input{outline:none;}
+        input::placeholder,textarea::placeholder{color:#555;}
         mark{border-radius:1px;}
       `}</style>
-      {children}
-    </div>
+      <div style={{ background: "#000", minHeight: "100vh", width: "100%" }}>
+        <div style={{ minHeight: "100vh", background: "#000", color: "#fff", fontFamily: "'DM Mono','Courier New',monospace", fontWeight: 500, display: "flex", flexDirection: "column", maxWidth: 760, margin: "0 auto" }}>
+          {children}
+        </div>
+      </div>
+    </>
   );
 }
 
 function Logo({ inline }) {
-  return <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: inline ? 21 : 30, letterSpacing: 4, color: "#fff" }}>TASKBOARD</span>;
+  return <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: inline ? 24 : 34, letterSpacing: 4, color: "#fff" }}>TASKBOARD</span>;
 }
 
 function Center({ children }) {
